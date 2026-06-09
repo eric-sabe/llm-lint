@@ -1,6 +1,6 @@
 {
   "_README": "Models to sample. `id` is the (stable) folder name under corpus/samples/. The model VERSION to call comes from the `modelEnv` env var (set it in .env, e.g. XAI_MODEL=grok-4) so you can bump model versions without editing this file; `model` here is only the fallback default if that env var is unset. `key` is the env var holding the provider's API key (never commit keys). A model whose key is unset is skipped.",
-  "maxTokens": 1200,
+  "maxTokens": 4000,
   "models": [
     { "id": "claude-opus", "provider": "anthropic", "model": "claude-opus-4-8", "modelEnv": "ANTHROPIC_MODEL", "key": "ANTHROPIC_API_KEY" },
     { "id": "gpt", "provider": "openai", "model": "gpt-5", "modelEnv": "OPENAI_MODEL", "key": "OPENAI_API_KEY" },

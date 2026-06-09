@@ -12,6 +12,8 @@ version move together.
   `GEMINI_MODEL`, `XAI_MODEL`), so you bump a model version in `.env` without editing
   `models.json` or any code. `models.json` keeps the env-var name (`modelEnv`) and a
   fallback default. Added `.env.example` with the key and model vars.
+- OpenAI adapter uses `max_completion_tokens` (required by gpt-5.x), and the default token
+  budget is raised to 4000 so reasoning models leave room for a full-length answer.
 
 ## [0.4.0]
 

@@ -52,9 +52,11 @@ const PROVIDERS = {
     extract: (j) => (j.content || []).map((b) => b.text || "").join(""),
   },
   openai: {
+    // newer OpenAI models (gpt-5.x) require max_completion_tokens, not max_tokens; the
+    // budget also covers reasoning tokens, so keep it generous.
     url: () => "https://api.openai.com/v1/chat/completions",
     headers: (key) => ({ "content-type": "application/json", authorization: `Bearer ${key}` }),
-    body: (text, model) => ({ model, max_tokens: maxTokens, messages: [{ role: "user", content: text }] }),
+    body: (text, model) => ({ model, max_completion_tokens: maxTokens, messages: [{ role: "user", content: text }] }),
     extract: (j) => j.choices?.[0]?.message?.content ?? "",
   },
   xai: {
