@@ -1,0 +1,44 @@
+{
+  "name": "llm-lint",
+  "version": "0.1.0",
+  "description": "Zero-dependency linter that flags LLM writing tells in prose: fails on the em-dash, warns on AI-ish words and cliches.",
+  "type": "module",
+  "bin": {
+    "llm-lint": "./llm-lint.mjs"
+  },
+  "exports": "./llm-lint.mjs",
+  "files": [
+    "llm-lint.mjs"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test",
+    "lint": "node llm-lint.mjs README.md"
+  },
+  "keywords": [
+    "lint",
+    "linter",
+    "llm",
+    "ai",
+    "ai-detection",
+    "writing",
+    "prose",
+    "style",
+    "editorial",
+    "em-dash",
+    "slop",
+    "markdown"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eric-sabe/llm-lint.git"
+  },
+  "bugs": {
+    "url": "https://github.com/eric-sabe/llm-lint/issues"
+  },
+  "homepage": "https://github.com/eric-sabe/llm-lint#readme",
+  "license": "MIT",
+  "author": "eric-sabe"
+}
