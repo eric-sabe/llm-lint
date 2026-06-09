@@ -133,7 +133,7 @@ Tells are a moving target: each model family brings new ones, and old ones fade 
   node --env-file-if-exists=.env generate-samples.mjs   # generate for every model whose key is set
   ```
 
-  Update the `model` ids in `models.json` and re-run when a new model ships. See [`corpus/README.md`](corpus/README.md).
+  Set the model versions in `.env` (`XAI_MODEL`, `ANTHROPIC_MODEL`, etc.; copy `.env.example`) and just bump them there when a new model ships - no code or tracked-config edits. See [`corpus/README.md`](corpus/README.md).
 - **A monthly sweep does this for you.** `.github/workflows/catalogue-refresh.yml` runs `refresh.mjs` on a schedule, with no secrets: it combines corpus discovery with a coverage diff against the public Wikipedia "Signs of AI writing" essay, and files the candidates as a GitHub issue to review.
 
 Accepting a candidate means adding it to `WORD_GROUPS` (or `PHRASES`) with a source, noting it in `CHANGELOG.md`, and bumping the version. Keep the conservative bias: a tell earns its place with a source, and fading tells get pruned.

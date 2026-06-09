@@ -4,6 +4,15 @@ Notable changes to the slop-lint tool and its tell catalogue. Format roughly fol
 [Keep a Changelog](https://keepachangelog.com/); the package version and the catalogue
 version move together.
 
+## [0.4.1]
+
+### Changed
+
+- Model versions are now read from env vars (`ANTHROPIC_MODEL`, `OPENAI_MODEL`,
+  `GEMINI_MODEL`, `XAI_MODEL`), so you bump a model version in `.env` without editing
+  `models.json` or any code. `models.json` keeps the env-var name (`modelEnv`) and a
+  fallback default. Added `.env.example` with the key and model vars.
+
 ## [0.4.0]
 
 ### Added

@@ -28,8 +28,9 @@ node generate-samples.mjs --dry-run     # see what would run, no API calls
 node --env-file-if-exists=.env generate-samples.mjs   # generate for every model whose key is set
 ```
 
-Re-run when a model ships a new version (update the `model` ids in `../models.json` first),
-commit the refreshed `samples/`, and the monthly refresh will mine it with no keys needed.
+Re-run when a model ships a new version (bump the `*_MODEL` ids in `.env` first; see
+`../.env.example`), commit the refreshed `samples/`, and the monthly refresh will mine it
+with no keys needed.
 
 ## The example folder
 
