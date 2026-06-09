@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { lintText, walkFiles, WORDS, PHRASES } from "../slop-lint.mjs";
+import { lintText, walkFiles, discover, WORDS, WORD_GROUPS, PHRASES, VERSION } from "../slop-lint.mjs";
 
 test("em-dash is the one hard failure", () => {
   const { em, hits } = lintText("We shipped it — and it worked.");
@@ -55,4 +55,31 @@ test("walkFiles recurses dirs, filters extensions, includes explicit files as-is
 
 test("walkFiles --ignore substring is honored", () => {
   assert.ok(!walkFiles(["."], { ignore: ["README"] }).includes("README.md"));
+});
+
+test("catalogue is sourced: every group has since + source, and WORDS derives from them", () => {
+  for (const g of WORD_GROUPS) {
+    assert.ok(g.since && g.source && Array.isArray(g.words) && g.words.length);
+  }
+  const flat = WORD_GROUPS.flatMap((g) => g.words);
+  assert.deepEqual(WORDS, flat);
+  assert.equal(new Set(WORDS).size, WORDS.length, "no duplicate words across groups");
+});
+
+test("VERSION is a semver-ish string", () => {
+  assert.match(VERSION, /^\d+\.\d+\.\d+$/);
+});
+
+test("discover surfaces over-represented tokens and bigrams, excluding catalogue words", () => {
+  const samples = ["widgets widgets widgets shiny widgets shiny widgets shiny"];
+  const baseline = ["a quiet ordinary afternoon by the river with friends and bread"];
+  const cands = discover(samples, baseline, { top: 10, minCount: 2 });
+  const tokens = cands.map((c) => c.token);
+  assert.ok(tokens.includes("widgets"), "should surface the over-represented unigram");
+  assert.ok(tokens.includes("shiny widgets"), "should surface the over-represented bigram");
+});
+
+test("discover never re-proposes a word already in the catalogue", () => {
+  const cands = discover(["delve delve delve delve"], ["river river"], { minCount: 1 });
+  assert.ok(!cands.some((c) => c.token === "delve"));
 });

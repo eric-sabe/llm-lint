@@ -67,6 +67,8 @@ git ls-files '*.md' | xargs node slop-lint.mjs   # only tracked markdown
 | `--ignore <substr>` | Skip any path containing this substring. Repeatable. |
 | `--fail-on-warn` | Exit 1 on warnings as well as em-dashes. |
 | `--quiet` | Only print files that have hits. |
+| `--list` | Print the catalogue grouped by source. |
+| `--version` | Print the catalogue version. |
 | `--help` | Usage. |
 
 Directories are walked with the extension filter and skip `node_modules .git dist build .next out vendor coverage`. **Files you name explicitly are always linted, regardless of extension.**
@@ -111,6 +113,22 @@ const { em, hits } = lintText("In today's fast-paced world we leverage synergy."
 - **Double hyphen** used as an em-dash substitute, and **emoji**.
 
 The catalogue draws on corpus studies (the FSU "delve" focal-word analysis, a PubMed 135-term study, Gray's "meticulously commendable") plus published Pangram / Grammarly / practitioner blacklists. Tune `WORDS` and `PHRASES` at the top of `slop-lint.mjs` to taste.
+
+## Keeping the catalogue current
+
+Tells are a moving target: each model family brings new ones, and old ones fade as models are trained against them. So the catalogue is **sourced and versioned**, and there are tools to keep it honest.
+
+- **Sourced + versioned.** Words live in `WORD_GROUPS`, each carrying a `since` version and a `source`. `slop-lint --list` prints the catalogue with its provenance; `slop-lint --version` prints the catalogue version; [`CHANGELOG.md`](CHANGELOG.md) records what changed and when. To retire a faded tell, delete it and note it in the changelog.
+- **Find new tells by measuring, not guessing.** `--discover` compares word and bigram frequency in model output against a human baseline and ranks the over-represented, not-yet-catalogued tokens. This is how "delve" was found; re-run it against each new model's output.
+
+  ```bash
+  slop-lint --discover --samples corpus/samples --baseline corpus/baseline
+  ```
+
+  Drop fresh model output into `corpus/samples` and a trusted human corpus into `corpus/baseline` (see [`corpus/README.md`](corpus/README.md)). It proposes candidates; a human decides what is a real tell.
+- **A monthly sweep does this for you.** `.github/workflows/catalogue-refresh.yml` runs `refresh.mjs` on a schedule, with no secrets: it combines corpus discovery with a coverage diff against the public Wikipedia "Signs of AI writing" essay, and files the candidates as a GitHub issue to review.
+
+Accepting a candidate means adding it to `WORD_GROUPS` (or `PHRASES`) with a source, noting it in `CHANGELOG.md`, and bumping the version. Keep the conservative bias: a tell earns its place with a source, and fading tells get pruned.
 
 ## Contributing
 

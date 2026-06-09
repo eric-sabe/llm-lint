@@ -1,0 +1,28 @@
+name: catalogue-refresh
+
+# Monthly self-contained sweep for candidate new tells. No secrets, no external
+# services: runs refresh.mjs (corpus frequency analysis + the public Wikipedia
+# "Signs of AI writing" essay) and files the report as an issue for human review.
+on:
+  schedule:
+    - cron: "0 9 1 * *" # 09:00 UTC on the 1st of each month
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Generate candidate report
+        run: REFRESH_DATE="$(date +%Y-%m-%d)" node refresh.mjs > /dev/null
+      - name: File report as an issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh issue create --title "Catalogue refresh $(date +%Y-%m)" --body-file refresh-report.md

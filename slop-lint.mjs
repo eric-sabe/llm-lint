@@ -12,45 +12,76 @@
  *   node slop-lint.mjs --ignore drafts      # skip paths containing a substring (repeatable)
  *   node slop-lint.mjs --fail-on-warn .     # exit 1 on warnings too (strict CI mode)
  *   node slop-lint.mjs --quiet .            # only print files that have hits
+ *   node slop-lint.mjs --version            # print the catalogue version
+ *   node slop-lint.mjs --list               # print the catalogue with its sources
  *   git ls-files '*.md' | xargs node slop-lint.mjs     # lint tracked markdown
+ *
+ * Tells fade as models train against them and new ones appear with each release, so
+ * the catalogue is sourced and versioned (see CHANGELOG.md). Find candidate new tells
+ * empirically with --discover (see below).
  *
  * Severity, deliberately conservative (these words also appear in good human
  * writing, so false positives are the main risk and almost everything is a warning):
  *   FAIL (exit 1): the em-dash character (U+2014). The one near-decisive typographic tell.
  *   WARN:          everything else, flagged for a human look, never auto-removed.
- *
- * Catalogue from corpus studies (FSU "delve" focal-word paper; PubMed 135-term
- * analysis; Gray "meticulously commendable") plus Pangram / Grammarly / practitioner
- * blacklists. Also exported (WORDS, PHRASES, lintText, walkFiles) for reuse.
  */
 
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, sep, extname } from "node:path";
 import { pathToFileURL } from "node:url";
 
-// Corpus-validated focal words + marketing buzzwords + vague metaphors/verbs.
-export const WORDS = [
-  // FSU/PubMed focal words
-  "delve", "delves", "delving", "intricate", "intricately", "commendable",
-  "meticulous", "meticulously", "underscore", "underscores", "underscoring",
-  "pivotal", "paramount", "unwavering", "surpass", "surpasses", "showcase",
-  "showcases", "showcasing", "boast", "boasts", "tapestry", "realm", "resonate",
-  "resonates", "testament", "profound", "noteworthy", "notable", "versatile",
-  "invaluable", "elevate", "foster", "garner",
-  // marketing buzzwords
-  "leverage", "leveraging", "synergy", "robust", "seamless", "seamlessly",
-  "transformative", "scalable", "cutting-edge", "game-changer", "game changer",
-  "paradigm", "holistic", "empower", "harness", "unleash", "unlock", "utilize",
-  "utilise", "supercharge", "state-of-the-art", "best-in-class", "vibrant",
-  "multifaceted", "revolutionize", "ever-evolving", "fast-paced", "comprehensive",
-  // vague metaphors / meta-discourse nouns
-  "landscape", "journey", "roadmap", "ecosystem", "beacon", "symphony", "myriad",
-  "plethora", "facet", "illuminate", "navigate", "navigating",
-  // booster adverbs / filler transitions
-  "furthermore", "moreover", "additionally", "nonetheless", "nevertheless",
-  "undoubtedly", "notably", "strategically",
+export const VERSION = "0.2.0";
+
+// Catalogue, grouped by provenance. Each group carries the version it was added in
+// and its source, so the list can be pruned with confidence as tells fade. Edit a
+// group's `words`, record the change in CHANGELOG.md, and bump the version.
+export const WORD_GROUPS = [
+  {
+    since: "0.1.0",
+    source: "FSU 'delve' focal-word study; PubMed 135-term analysis",
+    words: [
+      "delve", "delves", "delving", "intricate", "intricately", "commendable",
+      "meticulous", "meticulously", "underscore", "underscores", "underscoring",
+      "pivotal", "paramount", "unwavering", "surpass", "surpasses", "showcase",
+      "showcases", "showcasing", "boast", "boasts", "tapestry", "realm", "resonate",
+      "resonates", "testament", "profound", "noteworthy", "notable", "versatile",
+      "invaluable", "elevate", "foster", "garner",
+    ],
+  },
+  {
+    since: "0.1.0",
+    source: "Pangram / Grammarly / practitioner marketing-buzzword blacklists",
+    words: [
+      "leverage", "leveraging", "synergy", "robust", "seamless", "seamlessly",
+      "transformative", "scalable", "cutting-edge", "game-changer", "game changer",
+      "paradigm", "holistic", "empower", "harness", "unleash", "unlock", "utilize",
+      "utilise", "supercharge", "state-of-the-art", "best-in-class", "vibrant",
+      "multifaceted", "revolutionize", "ever-evolving", "fast-paced", "comprehensive",
+    ],
+  },
+  {
+    since: "0.1.0",
+    source: "practitioner blacklists (vague metaphors / meta-discourse nouns)",
+    words: [
+      "landscape", "journey", "roadmap", "ecosystem", "beacon", "symphony", "myriad",
+      "plethora", "facet", "illuminate", "navigate", "navigating",
+    ],
+  },
+  {
+    since: "0.1.0",
+    source: "practitioner blacklists (booster adverbs / filler transitions)",
+    words: [
+      "furthermore", "moreover", "additionally", "nonetheless", "nevertheless",
+      "undoubtedly", "notably", "strategically",
+    ],
+  },
 ];
 
+// Flat list for matching (derived from the sourced groups above).
+export const WORDS = WORD_GROUPS.flatMap((g) => g.words);
+
+// Phrases / constructions. Sources: corpus studies above plus the Wikipedia
+// "Signs of AI writing" essay and practitioner blacklists. Added in 0.1.0 unless noted.
 export const PHRASES = [
   // intro / scene-setting cliches
   { re: /\bin today'?s (fast[- ]paced )?(world|digital age|digital landscape)\b/i, msg: '"in today\'s ... world" intro' },
@@ -145,7 +176,85 @@ export function walkFiles(paths, { exts = DEFAULT_EXTS, ignore = [] } = {}) {
   return [...new Set(out)];
 }
 
+// ── Discover: find candidate NEW tells empirically ────────────────────────────
+// Compare word/bigram frequency in model-output samples against a human baseline.
+// Tokens that are massively over-represented in the samples, and not already in the
+// catalogue, are ranked as candidates for human review. This is how the original
+// "delve" tell was found, and it re-runs against each new model's output.
+const STOP = new Set((
+  "the a an and or but of to in on at for with as is are was were be been being by " +
+  "this that these those it its it's i you he she we they them his her their our your " +
+  "not no nor so if then than too very can will just also from into over under about " +
+  "out up down off here there what which who whom when where why how all any both each " +
+  "more most other some such only own same has have had do does did"
+).split(" "));
+
+function tokenize(text) {
+  return (text.toLowerCase().match(/[a-z][a-z'’-]{2,}/g) || []).filter((w) => !STOP.has(w));
+}
+function freqMap(texts, { bigrams = true } = {}) {
+  const counts = new Map(); let total = 0;
+  for (const t of texts) {
+    const toks = tokenize(t);
+    for (let i = 0; i < toks.length; i++) {
+      counts.set(toks[i], (counts.get(toks[i]) || 0) + 1); total++;
+      if (bigrams && i + 1 < toks.length) {
+        const bg = `${toks[i]} ${toks[i + 1]}`;
+        counts.set(bg, (counts.get(bg) || 0) + 1);
+      }
+    }
+  }
+  return { counts, total: total || 1 };
+}
+export function discover(sampleTexts, baselineTexts, { top = 30, minCount = 3 } = {}) {
+  const S = freqMap(sampleTexts), B = freqMap(baselineTexts);
+  const known = new Set(WORDS.map((w) => w.toLowerCase()));
+  const smoothing = 1 / (B.total * 10);
+  const out = [];
+  for (const [tok, c] of S.counts) {
+    if (c < minCount || known.has(tok)) continue;
+    const sf = c / S.total;
+    const bf = (B.counts.get(tok) || 0) / B.total;
+    out.push({ token: tok, count: c, sampleFreq: sf, baselineFreq: bf, ratio: sf / (bf + smoothing) });
+  }
+  out.sort((a, b) => b.ratio - a.ratio || b.count - a.count);
+  return out.slice(0, top);
+}
+
+function readAll(paths) {
+  return walkFiles(paths, { exts: [".md", ".markdown", ".mdx", ".txt"] })
+    .map((f) => { try { return readFileSync(f, "utf8"); } catch { return ""; } });
+}
+
+function runDiscover(argv) {
+  const get = (flag) => { const i = argv.indexOf(flag); return i >= 0 ? argv[i + 1] : null; };
+  const samples = get("--samples"), baseline = get("--baseline");
+  const json = argv.includes("--json");
+  const top = Number(get("--top")) || 30;
+  if (!samples || !baseline) {
+    console.error("discover: need --samples <dir> and --baseline <dir>.\n" +
+      "  node slop-lint.mjs --discover --samples corpus/samples --baseline corpus/baseline");
+    return 2;
+  }
+  const sTexts = readAll([samples]), bTexts = readAll([baseline]);
+  if (!sTexts.length || !bTexts.length) { console.error("discover: empty samples or baseline corpus."); return 2; }
+  const cands = discover(sTexts, bTexts, { top });
+  if (json) { console.log(JSON.stringify({ version: VERSION, candidates: cands }, null, 2)); return 0; }
+  console.log("Candidate tells (over-represented in samples vs baseline, not yet in the catalogue):\n");
+  console.log("  ratio   count  token");
+  for (const c of cands) console.log(`  ${c.ratio.toFixed(1).padStart(6)}  ${String(c.count).padStart(5)}  ${c.token}`);
+  console.log(`\n${cands.length} candidate(s). Review, then add the real tells to WORD_GROUPS (with a source) and CHANGELOG.md.`);
+  return 0;
+}
+
 function main(argv) {
+  if (argv.includes("--version") || argv.includes("-v")) { console.log(VERSION); return 0; }
+  if (argv.includes("--discover")) return runDiscover(argv);
+  if (argv.includes("--list")) {
+    for (const g of WORD_GROUPS) console.log(`\n# ${g.source} (since ${g.since})\n${g.words.join(", ")}`);
+    console.log(`\n# phrases: ${PHRASES.length} patterns. Catalogue version ${VERSION}.`);
+    return 0;
+  }
   const paths = [];
   let exts = DEFAULT_EXTS, ignore = [], failOnWarn = false, quiet = false;
   for (let i = 0; i < argv.length; i++) {
@@ -153,7 +262,8 @@ function main(argv) {
     if (a === "--help" || a === "-h") {
       console.log("slop-lint - flag LLM tells in prose. FAIL on em-dash, WARN on the rest.\n" +
         "  node slop-lint.mjs [paths...] [--ext .md,.txt] [--ignore <substr>]... [--fail-on-warn] [--quiet]\n" +
-        "  no paths: scans the current directory recursively.");
+        "  node slop-lint.mjs --discover --samples <dir> --baseline <dir> [--top N] [--json]\n" +
+        "  --version  --list   (no paths: scans the current directory recursively)");
       return 0;
     }
     if (a === "--ext") { exts = argv[++i].split(",").map((e) => (e.startsWith(".") ? e : `.${e}`).toLowerCase()); continue; }
