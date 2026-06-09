@@ -4,6 +4,28 @@ Notable changes to the slop-lint tool and its tell catalogue. Format roughly fol
 [Keep a Changelog](https://keepachangelog.com/); the package version and the catalogue
 version move together.
 
+## [0.8.0]
+
+### Changed
+
+- **Baseline is now three modern registers**, not just oratory (Perplexity-scouted, then
+  endpoint-verified). `build-baseline.mjs` pulls: US presidential addresses (public domain,
+  oratory), **NIH MedlinePlus** health summaries (public domain, plain-language explainer),
+  and **Wikinews** (CC BY, journalism). All keyless and modern (~60k words).
+- The plain explainer + journalism registers lowered the baseline's curly-quote rate to
+  ~1.9 per 1k words, so GPT/Grok (~9) stand out ~4.7x - the smart-quote tell is now robustly
+  validated. Claude/Grok also em-dash above this human baseline (7.x vs 4.2).
+
+### Notes
+
+- Sources evaluated and rejected: Federal Register (keyless, but jargon-dense regulatory
+  boilerplate full of model numbers - bad prose); Voice of America (public domain, but no
+  clean keyless API); SCOTUS (full text unreliable via free APIs). The honest constraint
+  stands: genuinely casual modern prose is almost all copyrighted, so the best baseline you
+  can add is your own contemporary writing.
+- Even against the broader baseline, the vs-human word pass surfaced no new tells (only
+  common words like "modern"/"rather"), so no catalogue change. The linter is unchanged.
+
 ## [0.7.0]
 
 ### Changed
