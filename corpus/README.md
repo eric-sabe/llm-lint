@@ -6,8 +6,7 @@ the catalogue, are surfaced for review.
 
 ```
 baseline/         human reference prose (built by ../build-baseline.mjs; see SOURCES.md)
-  wikinews/         English Wikinews articles (CC BY 2.5)
-  gutenberg/        public-domain Project Gutenberg excerpts
+  gov-speeches/     US presidential SOTU + inaugural addresses (public domain, modern)
 samples/<model>/  one folder per model, holding that model's answers to the prompt set
 ```
 
@@ -36,13 +35,15 @@ with no keys needed.
 
 ## The baseline
 
-`baseline/` is built by `../build-baseline.mjs` (`npm run baseline`) from permissive
-sources (Wikinews CC BY 2.5 + public-domain Gutenberg); see `baseline/SOURCES.md` for
-attribution. It is broad rather than perfectly genre-matched, and partly dated, so the
-**vs-human** comparison surfaces some register differences (older prose under-uses modern
-words). The **vs-pool** comparison (a model against the other models on identical prompts)
-holds topic constant and is the more reliable read. The strongest baseline you can supply
-is a large body of your own trusted contemporary prose - drop it in and re-run.
+`baseline/` is built by `../build-baseline.mjs` (`npm run baseline`) from **US federal
+government works** - presidential State of the Union and Inaugural addresses, which are
+public domain and **modern** (past ~50 years); see `baseline/SOURCES.md`. This fixes the
+dated-vocabulary problem a literary baseline has. Register caveat: it is formal oratory,
+not casual prose, so it still uses the em-dash heavily (a tell of *plain typed* text, not
+of formal writing); the **vs-pool** comparison (a model against the other models on
+identical prompts) holds register and topic constant and stays the more reliable read. The
+strongest baseline you can supply is a large body of your own trusted contemporary prose -
+drop it in and re-run.
 
 `samples/example-llm/` is a tiny illustrative folder (not real model output) so the demo
 runs before you generate anything.

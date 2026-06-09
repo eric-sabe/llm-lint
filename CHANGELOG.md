@@ -4,6 +4,28 @@ Notable changes to the slop-lint tool and its tell catalogue. Format roughly fol
 [Keep a Changelog](https://keepachangelog.com/); the package version and the catalogue
 version move together.
 
+## [0.7.0]
+
+### Changed
+
+- **Baseline is now modern public-domain US-government prose.** `build-baseline.mjs` pulls
+  presidential State of the Union and Inaugural addresses (Ford..Biden, ~70k words) from
+  Wikisource - public domain and contemporary, replacing the dated literary / CC-BY mix.
+  This fixes the dated-vocabulary problem: the vs-human word comparison no longer throws up
+  artifacts (e.g. "create" at 206x), and it sharpened the smart-quote signal - against the
+  modern baseline (3.4 curly quotes per 1k words) GPT and Grok clearly stand out at ~9.
+
+### Notes
+
+- Supreme Court opinions were attempted (the request included them) but dropped: full text
+  is unreliable via the free APIs (CourtListener lacks ingested text for many opinions;
+  Wikisource transcludes opinions into subpages the extract API misses), and legalese is
+  citation-noisy for a prose baseline. Speeches give a cleaner modern reference.
+- Even with the modern baseline, the vs-human word pass surfaced no strong uncatalogued
+  tells (only low-ratio common words like "often"/"modern"), confirming the catalogue
+  already covers the obvious word tells. The em-dash stays ~5/1k even in oratory, so it
+  remains a tell of plain typed text. Cross-model remains the most reliable signal.
+
 ## [0.6.0]
 
 ### Added

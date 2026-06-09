@@ -1,6 +1,6 @@
 {
   "name": "slop-lint",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Zero-dependency linter that flags AI 'slop' in prose: fails on the em-dash, warns on LLM tells (words, cliches, constructions).",
   "type": "module",
   "bin": {

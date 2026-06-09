@@ -1,100 +1,84 @@
 #!/usr/bin/env node
 /**
- * build-baseline - assemble a human reference corpus for `--discover` from permissively
- * licensed sources. No keys. Writes corpus/baseline/ and a SOURCES.md with attribution.
+ * build-baseline - assemble a human reference corpus for `--discover` from US federal
+ * government works, which are **public domain** and **modern** (past ~50 years). No keys.
+ * Writes corpus/baseline/ and a SOURCES.md.
  *
  *   node build-baseline.mjs
  *
- * Sources:
- *   - English Wikinews (CC BY 2.5): contemporary, plain factual prose. Random articles.
- *   - Project Gutenberg (public domain): a few plain-prose books for register variety.
+ * Source: presidential State of the Union + Inaugural addresses (Ford..Biden). The speech
+ * text is a US-government work (public domain), retrieved from English Wikisource.
  *
- * The strongest baseline is a large body of your own / trusted contemporary human prose
- * in the same genres as prompts.json; this is a reasonable, reproducible starter. Re-run
- * to refresh. Genre coverage is broad rather than perfectly matched - good enough because
- * real human prose rarely uses the AI tells regardless of topic.
+ * Why: contemporary vocabulary (unlike public-domain literature) with no licensing
+ * encumbrance. Caveat: the register is FORMAL oratory, not casual - genuinely casual
+ * modern prose is almost always copyrighted. The strongest baseline you can supply is your
+ * own trusted contemporary writing in the prompt genres; drop it in and re-run.
+ *
+ * (Supreme Court opinions were considered but dropped: full text is unreliable via the
+ * free APIs - CourtListener lacks ingested text for many opinions, and Wikisource splits
+ * opinions into transcluded subpages the extract API misses - and legalese is citation-
+ * noisy for a prose baseline. Speeches give a cleaner modern reference.)
  */
 
 import { writeFileSync, mkdirSync, rmSync } from "node:fs";
 
-const UA = "slop-lint-baseline-builder/1.0 (https://github.com/eric-sabe/slop-lint)";
-const words = (t) => (t.match(/\S+/g) || []).length;
-const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 44);
+const UA = "slop-lint-baseline-builder/2.1 (https://github.com/eric-sabe/slop-lint)";
+const wc = (t) => (t.match(/\S+/g) || []).length;
+const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 50);
+const cap = (t, n) => t.split(/\s+/).filter(Boolean).slice(0, n).join(" ");
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const MODERN = /\b(Ford|Carter|Reagan|Bush|Clinton|Obama|Trump|Biden)\b/; // past ~50 years
 
-async function wikinews(target = 45) {
-  const dir = "corpus/baseline/wikinews";
-  rmSync(dir, { recursive: true, force: true });
-  mkdirSync(dir, { recursive: true });
-  const seen = new Set();
+async function wikisourceTitles(query, kind) {
+  const u = `https://en.wikisource.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=50&format=json&formatversion=2`;
+  const r = await fetch(u, { headers: { "User-Agent": UA } });
+  return ((await r.json()).query?.search?.map((s) => s.title) || [])
+    .filter((t) => MODERN.test(t) && new RegExp(`${kind} Address`, "i").test(t));
+}
+async function extract(title) {
+  const u = `https://en.wikisource.org/w/api.php?action=query&prop=extracts&explaintext=1&exlimit=max&titles=${encodeURIComponent(title)}&format=json&formatversion=2`;
+  const r = await fetch(u, { headers: { "User-Agent": UA } });
+  return ((await r.json()).query?.pages?.[0]?.extract || "").trim();
+}
+
+async function speeches(maxWords = 2800) {
+  const dir = "corpus/baseline/gov-speeches";
+  rmSync(dir, { recursive: true, force: true }); mkdirSync(dir, { recursive: true });
+  // separate quotas so inaugurals get represented alongside the more numerous SOTUs
+  const sotu = (await wikisourceTitles("State of the Union Address", "State of the Union")).slice(0, 18);
+  const inaug = (await wikisourceTitles("Inaugural Address", "Inaugural")).slice(0, 10);
+  const titles = [...new Set([...sotu, ...inaug])];
   let n = 0;
-  for (let round = 0; round < 16 && n < target; round++) {
-    const url = "https://en.wikinews.org/w/api.php?action=query&generator=random&grnnamespace=0&grnlimit=25" +
-      "&prop=extracts&explaintext=1&exlimit=max&format=json&formatversion=2";
-    let pages;
-    try { const r = await fetch(url, { headers: { "User-Agent": UA } }); pages = (await r.json()).query?.pages || []; }
-    catch (e) { console.log(`wikinews round ${round}: ${e.message}`); break; }
-    for (const p of pages) {
-      if (n >= target) break;
-      const ex = (p.extract || "").trim();
-      if (seen.has(p.pageid) || words(ex) < 200) continue;
-      seen.add(p.pageid); n++;
-      writeFileSync(`${dir}/${String(n).padStart(2, "0")}-${slug(p.title)}.txt`, ex + "\n");
-    }
+  for (const t of titles) {
+    try {
+      const text = await extract(t);
+      if (wc(text) < 400) continue;
+      writeFileSync(`${dir}/${slug(t)}.txt`, cap(text, maxWords) + "\n"); n++;
+    } catch (e) { console.log(`speech "${t}": ${e.message}`); }
+    await sleep(150);
   }
-  console.log(`wikinews: ${n} articles`);
+  console.log(`gov-speeches: ${n} addresses (${sotu.length} SOTU + ${inaug.length} inaugural sought)`);
   return n;
 }
 
-// Public-domain, deliberately plain (non-flowery) prose across registers.
-const GUTENBERG = [
-  { id: 3176, title: "The Innocents Abroad", author: "Mark Twain (1869)", note: "travel" },
-  { id: 76, title: "Adventures of Huckleberry Finn", author: "Mark Twain (1884)", note: "narrative" },
-  { id: 2814, title: "Dubliners", author: "James Joyce (1914)", note: "narrative" },
-  { id: 1661, title: "The Adventures of Sherlock Holmes", author: "Arthur Conan Doyle (1892)", note: "narrative" },
-  { id: 2009, title: "On the Origin of Species", author: "Charles Darwin (1859)", note: "explainer/science" },
-  { id: 10136, title: "The Book of Household Management", author: "Isabella Beeton (1861)", note: "how-to/practical" },
-];
-async function gutenberg(maxWords = 6000) {
-  const dir = "corpus/baseline/gutenberg";
-  rmSync(dir, { recursive: true, force: true });
-  mkdirSync(dir, { recursive: true });
-  let ok = 0;
-  for (const b of GUTENBERG) {
-    try {
-      const r = await fetch(`https://www.gutenberg.org/cache/epub/${b.id}/pg${b.id}.txt`, { headers: { "User-Agent": UA } });
-      if (!r.ok) { console.log(`gutenberg ${b.id}: HTTP ${r.status}`); continue; }
-      let t = await r.text();
-      t = t.replace(/^[\s\S]*?\*\*\*\s*START OF[\s\S]*?\*\*\*/i, "").replace(/\*\*\*\s*END OF[\s\S]*$/i, "");
-      const ws = t.split(/\s+/).filter(Boolean);
-      const chunk = ws.slice(300, 300 + maxWords).join(" "); // skip front matter, take a body chunk
-      writeFileSync(`${dir}/${b.id}-${slug(b.title)}.txt`, chunk + "\n");
-      ok++;
-    } catch (e) { console.log(`gutenberg ${b.id}: ${e.message}`); }
-  }
-  console.log(`gutenberg: ${ok} books`);
-  return ok;
-}
-
-const wn = await wikinews();
-await gutenberg();
+// Replace any prior baseline layout.
+for (const d of ["wikinews", "gutenberg", "scotus"]) rmSync(`corpus/baseline/${d}`, { recursive: true, force: true });
+const n = await speeches();
 
 writeFileSync("corpus/baseline/SOURCES.md", `# Baseline sources
 
-Human reference corpus for \`slop-lint --discover\`. Permissively licensed; assembled by
-\`build-baseline.mjs\` (re-run to refresh).
+Human reference corpus for \`slop-lint --discover\`, built by \`build-baseline.mjs\`
+(\`npm run baseline\`). **US federal government works** - **public domain** and **modern**
+(past ~50 years). Re-run to refresh.
 
-## English Wikinews (${wn} articles, in \`wikinews/\`)
+Register caveat: these are FORMAL political oratory, not casual prose. They give modern
+vocabulary without copyright encumbrance; the strongest baseline is your own trusted
+contemporary writing in the prompt genres.
 
-Content from English Wikinews, © its contributors, licensed **CC BY 2.5**
-(https://creativecommons.org/licenses/by/2.5/). Random mainspace articles; see filenames
-for titles. Source: https://en.wikinews.org/
+## Presidential speeches (${n} files, \`gov-speeches/\`)
 
-## Project Gutenberg (in \`gutenberg/\`, public domain)
-
-Body excerpts of public-domain works (US):
-
-${GUTENBERG.map((b) => `- *${b.title}* — ${b.author} (${b.note}). Gutenberg #${b.id}.`).join("\n")}
-
-Project Gutenberg (https://www.gutenberg.org/) texts are in the public domain in the US.
+State of the Union and Inaugural addresses, Ford through Biden. The speech text is a US
+government work and therefore public domain. Retrieved from English Wikisource
+(https://en.wikisource.org/); see filenames for titles.
 `);
-console.log("Wrote corpus/baseline/SOURCES.md");
+console.log(`Wrote SOURCES.md (${n} files)`);
