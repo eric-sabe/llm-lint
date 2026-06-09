@@ -12,4 +12,4 @@ jobs:
       - name: Unit tests
         run: node --test
       - name: Dogfood (our own prose must pass)
-        run: node llm-lint.mjs README.md
+        run: node slop-lint.mjs README.md

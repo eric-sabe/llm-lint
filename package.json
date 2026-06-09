@@ -1,21 +1,21 @@
 {
-  "name": "llm-lint",
+  "name": "slop-lint",
   "version": "0.1.0",
-  "description": "Zero-dependency linter that flags LLM writing tells in prose: fails on the em-dash, warns on AI-ish words and cliches.",
+  "description": "Zero-dependency linter that flags AI 'slop' in prose: fails on the em-dash, warns on LLM tells (words, cliches, constructions).",
   "type": "module",
   "bin": {
-    "llm-lint": "./llm-lint.mjs"
+    "slop-lint": "./slop-lint.mjs"
   },
-  "exports": "./llm-lint.mjs",
+  "exports": "./slop-lint.mjs",
   "files": [
-    "llm-lint.mjs"
+    "slop-lint.mjs"
   ],
   "engines": {
     "node": ">=18"
   },
   "scripts": {
     "test": "node --test",
-    "lint": "node llm-lint.mjs README.md"
+    "lint": "node slop-lint.mjs README.md"
   },
   "keywords": [
     "lint",
@@ -23,22 +23,23 @@
     "llm",
     "ai",
     "ai-detection",
+    "ai-slop",
+    "slop",
     "writing",
     "prose",
     "style",
     "editorial",
     "em-dash",
-    "slop",
     "markdown"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/eric-sabe/llm-lint.git"
+    "url": "git+https://github.com/eric-sabe/slop-lint.git"
   },
   "bugs": {
-    "url": "https://github.com/eric-sabe/llm-lint/issues"
+    "url": "https://github.com/eric-sabe/slop-lint/issues"
   },
-  "homepage": "https://github.com/eric-sabe/llm-lint#readme",
+  "homepage": "https://github.com/eric-sabe/slop-lint#readme",
   "license": "MIT",
   "author": "eric-sabe"
 }

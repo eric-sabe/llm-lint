@@ -1,17 +1,18 @@
 #!/usr/bin/env node
 /**
- * llm-lint - guard prose against LLM tells. Portable, zero-dependency, single file.
+ * slop-lint - guard prose against LLM tells ("AI slop"). Portable, zero-dependency,
+ * single file.
  *
  * Drop this into any project (copy it to scripts/ or tools/) and run it on your
  * text. No install, no config required - only Node 18+.
  *
- *   node llm-lint.mjs                      # scan the current directory (recursive)
- *   node llm-lint.mjs README.md docs/      # lint specific files / directories
- *   node llm-lint.mjs --ext .md,.mdx src   # restrict which extensions to walk
- *   node llm-lint.mjs --ignore drafts      # skip paths containing a substring (repeatable)
- *   node llm-lint.mjs --fail-on-warn .     # exit 1 on warnings too (strict CI mode)
- *   node llm-lint.mjs --quiet .            # only print files that have hits
- *   git ls-files '*.md' | xargs node llm-lint.mjs     # lint tracked markdown
+ *   node slop-lint.mjs                      # scan the current directory (recursive)
+ *   node slop-lint.mjs README.md docs/      # lint specific files / directories
+ *   node slop-lint.mjs --ext .md,.mdx src   # restrict which extensions to walk
+ *   node slop-lint.mjs --ignore drafts      # skip paths containing a substring (repeatable)
+ *   node slop-lint.mjs --fail-on-warn .     # exit 1 on warnings too (strict CI mode)
+ *   node slop-lint.mjs --quiet .            # only print files that have hits
+ *   git ls-files '*.md' | xargs node slop-lint.mjs     # lint tracked markdown
  *
  * Severity, deliberately conservative (these words also appear in good human
  * writing, so false positives are the main risk and almost everything is a warning):
@@ -150,8 +151,8 @@ function main(argv) {
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--help" || a === "-h") {
-      console.log("llm-lint - flag LLM tells in prose. FAIL on em-dash, WARN on the rest.\n" +
-        "  node llm-lint.mjs [paths...] [--ext .md,.txt] [--ignore <substr>]... [--fail-on-warn] [--quiet]\n" +
+      console.log("slop-lint - flag LLM tells in prose. FAIL on em-dash, WARN on the rest.\n" +
+        "  node slop-lint.mjs [paths...] [--ext .md,.txt] [--ignore <substr>]... [--fail-on-warn] [--quiet]\n" +
         "  no paths: scans the current directory recursively.");
       return 0;
     }
@@ -162,7 +163,7 @@ function main(argv) {
     paths.push(a);
   }
   const files = walkFiles(paths.length ? paths : ["."], { exts, ignore });
-  if (!files.length) { console.log("llm-lint: no files found."); return 0; }
+  if (!files.length) { console.log("slop-lint: no files found."); return 0; }
 
   let emTotal = 0, warnTotal = 0;
   for (const file of files) {

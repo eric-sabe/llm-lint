@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { lintText, walkFiles, WORDS, PHRASES } from "../llm-lint.mjs";
+import { lintText, walkFiles, WORDS, PHRASES } from "../slop-lint.mjs";
 
 test("em-dash is the one hard failure", () => {
   const { em, hits } = lintText("We shipped it — and it worked.");

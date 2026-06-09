@@ -1,11 +1,11 @@
-# llm-lint
+# slop-lint
 
-A tiny, zero-dependency linter that flags **LLM writing tells** in prose. It **fails on the em-dash** (the one near-decisive AI typographic tell) and **warns** on the words, cliches, and constructions that make text read like a language model wrote it.
+A tiny, zero-dependency linter that flags **AI slop** in prose: the **LLM writing tells** that make text read like a language model wrote it. It **fails on the em-dash** (the one near-decisive AI typographic tell) and **warns** on the words, cliches, and constructions that give it away.
 
 One file. No dependencies. No config. Node 18+.
 
 ```
-$ npx github:eric-sabe/llm-lint posts/
+$ npx github:eric-sabe/slop-lint posts/
 posts/launch.md
   3: ✗ em-dash ×1  We built a tool, and honestly, it changed everything
   7: ⚠ word "leverage"
@@ -18,7 +18,7 @@ FAIL on em-dash; warnings are prompts to review, not bans.
 
 ## Why
 
-LLM prose has tells. Some are decisive (the em-dash, used where a human would type a comma or a period), most are soft (focal words like "delve" and "tapestry", marketing verbs like "leverage" and "empower", scene-setting intros, hedge-and-pivot constructions). `llm-lint` separates the two:
+LLM prose has tells. Some are decisive (the em-dash, used where a human would type a comma or a period), most are soft (focal words like "delve" and "tapestry", marketing verbs like "leverage" and "empower", scene-setting intros, hedge-and-pivot constructions). `slop-lint` separates the two:
 
 - **The em-dash is a hard failure** (exit code 1). It is the single most reliable signal and rarely typed by hand.
 - **Everything else is a warning.** These words appear in good human writing too, so the tool flags them for a look and never edits anything. A low false-negative rate matters more than zero false positives.
@@ -30,33 +30,33 @@ It is deliberately conservative. The goal is a fast review prompt plus a CI gate
 No install (run straight from GitHub):
 
 ```bash
-npx github:eric-sabe/llm-lint .
+npx github:eric-sabe/slop-lint .
 ```
 
 Or copy the single file into your project and run it with Node:
 
 ```bash
-curl -O https://raw.githubusercontent.com/eric-sabe/llm-lint/main/llm-lint.mjs
-node llm-lint.mjs .
+curl -O https://raw.githubusercontent.com/eric-sabe/slop-lint/main/slop-lint.mjs
+node slop-lint.mjs .
 ```
 
 Or install it as a dev dependency:
 
 ```bash
-npm i -D github:eric-sabe/llm-lint
-npx llm-lint .
+npm i -D github:eric-sabe/slop-lint
+npx slop-lint .
 ```
 
 ### Examples
 
 ```bash
-node llm-lint.mjs                      # scan the current directory (recursive)
-node llm-lint.mjs README.md docs/      # specific files and/or directories
-node llm-lint.mjs --ext .md,.mdx src   # restrict which extensions to walk
-node llm-lint.mjs --ignore drafts .    # skip paths containing a substring (repeatable)
-node llm-lint.mjs --fail-on-warn .     # strict mode: exit 1 on warnings too
-node llm-lint.mjs --quiet .            # only print files that have hits
-git ls-files '*.md' | xargs node llm-lint.mjs   # only tracked markdown
+node slop-lint.mjs                      # scan the current directory (recursive)
+node slop-lint.mjs README.md docs/      # specific files and/or directories
+node slop-lint.mjs --ext .md,.mdx src   # restrict which extensions to walk
+node slop-lint.mjs --ignore drafts .    # skip paths containing a substring (repeatable)
+node slop-lint.mjs --fail-on-warn .     # strict mode: exit 1 on warnings too
+node slop-lint.mjs --quiet .            # only print files that have hits
+git ls-files '*.md' | xargs node slop-lint.mjs   # only tracked markdown
 ```
 
 ### Options
@@ -82,13 +82,13 @@ Directories are walked with the extension filter and skip `node_modules .git dis
 name: prose
 on: [push, pull_request]
 jobs:
-  llm-lint:
+  slop-lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
-      - run: npx github:eric-sabe/llm-lint .
+      - run: npx github:eric-sabe/slop-lint .
 ```
 
 ## Programmatic use
@@ -96,7 +96,7 @@ jobs:
 The file exports its internals, so you can build on it:
 
 ```js
-import { lintText, WORDS, PHRASES } from "llm-lint";
+import { lintText, WORDS, PHRASES } from "slop-lint";
 
 const { em, hits } = lintText("In today's fast-paced world we leverage synergy.");
 // em   -> number of em-dashes (the failure)
@@ -110,7 +110,7 @@ const { em, hits } = lintText("In today's fast-paced world we leverage synergy."
 - **~35 phrases and constructions**: "in today's ... world", "plays a crucial role", "it's worth noting that", "let's dive in", "in conclusion", "not just X but Y", "it's not X, it's Y", and more.
 - **Double hyphen** used as an em-dash substitute, and **emoji**.
 
-The catalogue draws on corpus studies (the FSU "delve" focal-word analysis, a PubMed 135-term study, Gray's "meticulously commendable") plus published Pangram / Grammarly / practitioner blacklists. Tune `WORDS` and `PHRASES` at the top of `llm-lint.mjs` to taste.
+The catalogue draws on corpus studies (the FSU "delve" focal-word analysis, a PubMed 135-term study, Gray's "meticulously commendable") plus published Pangram / Grammarly / practitioner blacklists. Tune `WORDS` and `PHRASES` at the top of `slop-lint.mjs` to taste.
 
 ## Contributing
 
