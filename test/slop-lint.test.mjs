@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { lintText, walkFiles, discover, WORDS, WORD_GROUPS, PHRASES, VERSION } from "../slop-lint.mjs";
 
 test("em-dash is the one hard failure", () => {
@@ -82,4 +83,14 @@ test("discover surfaces over-represented tokens and bigrams, excluding catalogue
 test("discover never re-proposes a word already in the catalogue", () => {
   const cands = discover(["delve delve delve delve"], ["river river"], { minCount: 1 });
   assert.ok(!cands.some((c) => c.token === "delve"));
+});
+
+test("prompts.json and models.json are valid and consistent", () => {
+  const p = JSON.parse(readFileSync("prompts.json", "utf8"));
+  const m = JSON.parse(readFileSync("models.json", "utf8"));
+  assert.ok(p.version && p.prompts.length >= 10, "a versioned, non-trivial prompt set");
+  const ids = p.prompts.map((x) => x.id);
+  assert.equal(new Set(ids).size, ids.length, "prompt ids are unique");
+  assert.ok(p.prompts.every((x) => x.id && x.genre && x.prompt), "each prompt has id/genre/prompt");
+  assert.ok(m.models.length && m.models.every((x) => x.id && x.provider && x.model && x.key), "each model has id/provider/model/key");
 });

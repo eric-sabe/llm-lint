@@ -1,0 +1,10 @@
+{
+  "_README": "Models to sample. `id` is the folder name under corpus/samples/. `model` is the provider's API model id - UPDATE THESE to the current frontier release before generating, and re-run when a new version ships. `key` is the env var holding that provider's API key (set them in your shell or a gitignored .env; never commit keys). A model whose key env var is unset is skipped, so you can generate for only the providers you have keys for.",
+  "maxTokens": 1200,
+  "models": [
+    { "id": "claude-opus", "provider": "anthropic", "model": "claude-opus-4-8", "key": "ANTHROPIC_API_KEY" },
+    { "id": "gpt", "provider": "openai", "model": "gpt-5", "key": "OPENAI_API_KEY" },
+    { "id": "gemini", "provider": "google", "model": "gemini-2.5-pro", "key": "GEMINI_API_KEY" },
+    { "id": "grok", "provider": "xai", "model": "grok-4", "key": "XAI_API_KEY" }
+  ]
+}

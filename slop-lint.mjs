@@ -30,7 +30,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, sep, extname } from "node:path";
 import { pathToFileURL } from "node:url";
 
-export const VERSION = "0.3.0";
+export const VERSION = "0.4.0";
 
 // Catalogue, grouped by provenance. Each group carries the version it was added in
 // and its source, so the list can be pruned with confidence as tells fade. Edit a
@@ -259,7 +259,9 @@ function runDiscover(argv) {
       "  node slop-lint.mjs --discover --samples corpus/samples --baseline corpus/baseline");
     return 2;
   }
-  const sTexts = readAll([samples]), bTexts = readAll([baseline]);
+  // both accept a comma-separated list of dirs/files, so a model can be compared against
+  // a human baseline or against the pool of other models (topic held constant).
+  const sTexts = readAll(samples.split(",")), bTexts = readAll(baseline.split(","));
   if (!sTexts.length || !bTexts.length) { console.error("discover: empty samples or baseline corpus."); return 2; }
   const cands = discover(sTexts, bTexts, { top });
   if (json) { console.log(JSON.stringify({ version: VERSION, candidates: cands }, null, 2)); return 0; }

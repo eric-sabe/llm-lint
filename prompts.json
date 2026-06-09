@@ -1,0 +1,31 @@
+{
+  "version": "1.0.0",
+  "note": "Fixed long-form prompt set for sample generation. Keep it stable so samples stay comparable across models and across time; bump the version if you change it. Genres are deliberately varied so genre-specific tells surface. generate-samples.mjs appends a neutral length instruction.",
+  "lengthInstruction": "Write roughly 700 words.",
+  "prompts": [
+    { "id": "essay-creativity", "genre": "essay", "prompt": "Why does creativity matter in everyday work?" },
+    { "id": "place-kyoto", "genre": "travel", "prompt": "Describe the city of Kyoto for a first-time visitor." },
+    { "id": "advice-firstjob", "genre": "advice", "prompt": "What advice would you give someone starting their first job?" },
+    { "id": "opinion-remotework", "genre": "opinion", "prompt": "Make the case for or against remote work." },
+    { "id": "profile-curie", "genre": "profile", "prompt": "Write a short profile of Marie Curie's life and work." },
+    { "id": "marketing-notebookapp", "genre": "marketing", "prompt": "Write a launch announcement for a new productivity notebook app." },
+    { "id": "encyclo-coffee", "genre": "encyclopedic", "prompt": "Write an encyclopedia-style entry on the history of coffee." },
+    { "id": "review-headphones", "genre": "review", "prompt": "Write a review of a pair of wireless headphones." },
+    { "id": "reflection-failure", "genre": "reflection", "prompt": "Write a reflection on what failure teaches us." },
+    { "id": "explain-blockchain", "genre": "explainer", "prompt": "Explain how blockchain works to a general audience." },
+    { "id": "history-printingpress", "genre": "history", "prompt": "Describe the impact of the printing press on society." },
+    { "id": "process-sourdough", "genre": "how-to", "prompt": "Explain how to bake sourdough bread from scratch." },
+    { "id": "essay-libraries", "genre": "essay", "prompt": "Why do public libraries still matter?" },
+    { "id": "place-patagonia", "genre": "travel", "prompt": "Describe a journey through Patagonia." },
+    { "id": "advice-saving", "genre": "advice", "prompt": "How should a young person think about saving money?" },
+    { "id": "opinion-socialmedia", "genre": "opinion", "prompt": "Argue whether social media has been good for society." },
+    { "id": "profile-smalltown", "genre": "profile", "prompt": "Write about a fictional small town and the character of the people who live there." },
+    { "id": "marketing-coffeeshop", "genre": "marketing", "prompt": "Write website copy for an independent neighborhood coffee shop." },
+    { "id": "encyclo-jazz", "genre": "encyclopedic", "prompt": "Write an overview of the origins of jazz." },
+    { "id": "review-restaurant", "genre": "review", "prompt": "Write a review of a neighborhood Italian restaurant." },
+    { "id": "reflection-time", "genre": "reflection", "prompt": "Write a reflection on how we experience time differently as we age." },
+    { "id": "explain-immunesystem", "genre": "explainer", "prompt": "Explain how the human immune system works." },
+    { "id": "history-silkroad", "genre": "history", "prompt": "Describe the significance of the Silk Road." },
+    { "id": "essay-walking", "genre": "essay", "prompt": "Write about the underrated value of walking." }
+  ]
+}

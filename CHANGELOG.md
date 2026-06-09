@@ -4,6 +4,26 @@ Notable changes to the slop-lint tool and its tell catalogue. Format roughly fol
 [Keep a Changelog](https://keepachangelog.com/); the package version and the catalogue
 version move together.
 
+## [0.4.0]
+
+### Added
+
+- **Sample generation harness.** `generate-samples.mjs` sends a fixed, genre-varied prompt
+  set (`prompts.json`) to each model in `models.json` (Anthropic, OpenAI, Google, xAI; raw
+  `fetch`, zero-dependency) and writes `corpus/samples/<model>/`. Key-gated and local-only
+  (a model whose key env var is unset is skipped), so API keys never touch CI. Supports
+  `--dry-run`, `--only`, and `--max`.
+- **Per-model corpus + model-vs-pool comparison.** Samples live under
+  `corpus/samples/<model>/`, and `--discover` now accepts a comma-separated list of folders
+  for `--samples` / `--baseline`. Since every model answers the same prompts, a model can be
+  compared against the pool of other models with topic held constant (its style signature),
+  in addition to the model-vs-human comparison.
+
+### Notes
+
+- The committed `corpus/samples/example-llm` and `corpus/baseline` are illustrative only;
+  generate real samples (and use a genre-matched human baseline) for real signal.
+
 ## [0.3.0]
 
 ### Added

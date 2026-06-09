@@ -125,7 +125,15 @@ Tells are a moving target: each model family brings new ones, and old ones fade 
   slop-lint --discover --samples corpus/samples --baseline corpus/baseline
   ```
 
-  Drop fresh model output into `corpus/samples` and a trusted human corpus into `corpus/baseline` (see [`corpus/README.md`](corpus/README.md)). It proposes candidates; a human decides what is a real tell.
+  Both `--samples` and `--baseline` take a comma-separated list of folders, so a model can be compared against a human baseline (general LLM tells) or against the **pool of other models** on the same prompts (that model's signature, with topic held constant).
+- **Generate the samples instead of pasting them.** `generate-samples.mjs` sends a fixed, genre-varied prompt set ([`prompts.json`](prompts.json)) to each model in [`models.json`](models.json) and writes `corpus/samples/<model>/`. Every model answers the same prompts, so differences are style, not subject. This is a local task (it needs API keys, which never touch CI); commit the result and the sweep mines it keyless.
+
+  ```bash
+  node generate-samples.mjs --dry-run    # what would run, no API calls
+  node --env-file-if-exists=.env generate-samples.mjs   # generate for every model whose key is set
+  ```
+
+  Update the `model` ids in `models.json` and re-run when a new model ships. See [`corpus/README.md`](corpus/README.md).
 - **A monthly sweep does this for you.** `.github/workflows/catalogue-refresh.yml` runs `refresh.mjs` on a schedule, with no secrets: it combines corpus discovery with a coverage diff against the public Wikipedia "Signs of AI writing" essay, and files the candidates as a GitHub issue to review.
 
 Accepting a candidate means adding it to `WORD_GROUPS` (or `PHRASES`) with a source, noting it in `CHANGELOG.md`, and bumping the version. Keep the conservative bias: a tell earns its place with a source, and fading tells get pruned.
