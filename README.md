@@ -27,24 +27,26 @@ It is deliberately conservative. The goal is a fast review prompt plus a CI gate
 
 ## Usage
 
-No install (run straight from GitHub):
+No install, straight from npm:
+
+```bash
+npx slop-lint .
+```
+
+Or as a dev dependency:
+
+```bash
+npm i -D slop-lint
+npx slop-lint .
+```
+
+Or run it straight from GitHub (no npm needed), or copy the single file in:
 
 ```bash
 npx github:eric-sabe/slop-lint .
-```
-
-Or copy the single file into your project and run it with Node:
-
-```bash
+# or:
 curl -O https://raw.githubusercontent.com/eric-sabe/slop-lint/main/slop-lint.mjs
 node slop-lint.mjs .
-```
-
-Or install it as a dev dependency:
-
-```bash
-npm i -D github:eric-sabe/slop-lint
-npx slop-lint .
 ```
 
 ### Examples
@@ -139,6 +141,17 @@ Tells are a moving target: each model family brings new ones, and old ones fade 
 - **A monthly sweep does this for you.** `.github/workflows/catalogue-refresh.yml` runs `refresh.mjs` on a schedule, with no secrets: it combines corpus discovery with a coverage diff against the public Wikipedia "Signs of AI writing" essay, and files the candidates as a GitHub issue to review.
 
 Accepting a candidate means adding it to `WORD_GROUPS` (or `PHRASES`) with a source, noting it in `CHANGELOG.md`, and bumping the version. Keep the conservative bias: a tell earns its place with a source, and fading tells get pruned.
+
+## Releasing (maintainer)
+
+Publishing is automated. One-time setup: create an npm **Automation** access token and add it as the repo secret `NPM_TOKEN` (Settings > Secrets and variables > Actions). Then:
+
+```bash
+npm version patch   # or minor/major: bumps package.json + creates a git tag
+git push --follow-tags
+```
+
+The `publish` workflow runs the tests and `npm publish` on the new `v*` tag. To publish the current version without a new tag, run the workflow manually (Actions > publish > Run workflow). Catalogue/changelog and GitHub release notes are maintained by hand alongside the bump.
 
 ## Contributing
 

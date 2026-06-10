@@ -1,0 +1,30 @@
+name: publish
+
+# Publishes to npm when a v* tag is pushed (or on manual dispatch). Requires an
+# NPM_TOKEN repo secret: an npm "Automation" access token (it bypasses 2FA, which CI
+# needs). Set it at Settings > Secrets and variables > Actions.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch: {}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # for npm provenance
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+      - name: Test before publishing
+        run: node --test
+      - name: Publish
+        # drop --provenance if your token/setup rejects it; --access public is for the
+        # (unscoped) package and is harmless.
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
